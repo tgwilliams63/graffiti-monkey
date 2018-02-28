@@ -19,6 +19,7 @@ from exceptions import *
 import boto
 from boto import ec2
 
+import copy
 import time
 
 __all__ = ('GraffitiMonkey', 'Logging')
@@ -196,10 +197,10 @@ class GraffitiMonkey(object):
 
         tags_to_set = {}
         if self._append:
-            tags_to_set = volume.tags
+            tags_to_set = copy.deepcopy(volume.tags)
         for tag_name in self._instance_tags_to_propagate:
             log.debug('Trying to propagate instance tag: %s', tag_name)
-            if tag_name in instance_tags:
+            if tag_name in instance_tags and (tag_name not in tags_to_set or tags_to_set.get(tag_name) == ""):
                 value = instance_tags[tag_name]
                 tags_to_set[tag_name] = value
 
@@ -297,10 +298,10 @@ class GraffitiMonkey(object):
 
         tags_to_set = {}
         if self._append:
-            tags_to_set = snapshot.tags
+            tags_to_set = copy.deepcopy(snapshot.tags)
         for tag_name in self._volume_tags_to_propagate:
             log.debug('Trying to propagate volume tag: %s', tag_name)
-            if tag_name in volume_tags:
+            if tag_name in volume_tags and (tag_name not in tags_to_set or tags_to_set.get(tag_name) == ""):
                 tags_to_set[tag_name] = volume_tags[tag_name]
 
         # Set default tags for snapshot
